@@ -1,0 +1,45 @@
+# ==============================================================================
+# CONFLUENT PLATFORM ON KUBERNETES (CFK)
+# Part 5: Role-Based Access Control (RBAC RoleBindings)
+# ==============================================================================
+
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: ConfluentRolebinding
+metadata:
+  name: admin-system-admin
+  namespace: confluent
+  labels:
+    app: rbac
+    role: system-admin
+spec:
+  principal:
+    type: user
+    name: admin
+  role: SystemAdmin
+  kafkaRestClassRef:
+    name: default
+  clustersScopeByIds:
+    kafkaClusterId: confluent
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: ConfluentRolebinding
+metadata:
+  name: dev-user-developer-read
+  namespace: confluent
+  labels:
+    app: rbac
+    role: developer-read
+spec:
+  principal:
+    type: user
+    name: dev_user
+  role: DeveloperRead
+  resourcePatterns:
+    - resourceType: Topic
+      name: test-topic
+      patternType: LITERAL
+  kafkaRestClassRef:
+    name: default
+  clustersScopeByIds:
+    kafkaClusterId: confluent

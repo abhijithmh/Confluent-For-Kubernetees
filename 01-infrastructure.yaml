@@ -1,0 +1,92 @@
+# ==============================================================================
+# CONFLUENT PLATFORM ON KUBERNETES (CFK)
+# Part 1: Core Infrastructure (OpenLDAP & KRaft Controller)
+# ==============================================================================
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: openldap
+  namespace: confluent
+  labels:
+    app: openldap
+    component: identity-provider
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: openldap
+  template:
+    metadata:
+      labels:
+        app: openldap
+        component: identity-provider
+    spec:
+      containers:
+        - name: openldap
+          image: osixia/openldap:1.5.0
+          env:
+            - name: LDAP_ORGANISATION
+              value: "Example Inc."
+            - name: LDAP_DOMAIN
+              value: "example.com"
+            - name: LDAP_ADMIN_PASSWORD
+              value: "adminpassword"
+            - name: LDAP_CONFIG_PASSWORD
+              value: "configpassword"
+          ports:
+            - containerPort: 389
+              name: ldap
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: openldap
+  namespace: confluent
+  labels:
+    app: openldap
+    component: identity-provider
+spec:
+  selector:
+    app: openldap
+  ports:
+    - name: ldap
+      port: 389
+      targetPort: 389
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: KRaftController
+metadata:
+  name: kraftcontroller
+  namespace: confluent
+  labels:
+    app: kraftcontroller
+    component: consensus
+spec:
+  replicas: 1
+  image:
+    application: confluentinc/cp-server:7.6.0
+    init: confluentinc/confluent-init-container:2.8.0
+  dataVolumeCapacity: 10Gi
+  storageClass:
+    name: standard
+  podTemplate:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: "1"
+        memory: 512Mi
+  configOverrides:
+    jvm:
+      - "-Xmx256m"
+      - "-XX:+UseContainerSupport"

@@ -1,0 +1,182 @@
+# ==============================================================================
+# CONFLUENT PLATFORM ON KUBERNETES (CFK)
+# Part 3: Ecosystem Services (Schema Registry, Kafka Connect, Control Center)
+# ==============================================================================
+
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: SchemaRegistry
+metadata:
+  name: schemaregistry
+  namespace: confluent
+  labels:
+    app: schemaregistry
+    component: schema-management
+spec:
+  replicas: 1
+  image:
+    application: confluentinc/cp-schema-registry:7.6.0
+    init: confluentinc/confluent-init-container:2.8.0
+  podTemplate:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: "1"
+        memory: 512Mi
+  configOverrides:
+    jvm:
+      - "-Xmx256m"
+      - "-XX:+UseContainerSupport"
+  authorization:
+    type: rbac
+    kafkaRestClassRef:
+      name: default
+  dependencies:
+    kafka:
+      bootstrapEndpoint: kafka.confluent.svc.cluster.local:9073
+    mds:
+      endpoint: http://kafka.confluent.svc.cluster.local:8090
+      tokenKeyPair:
+        secretRef: mds-token-pem
+      authentication:
+        type: bearer
+        bearer:
+          secretRef: mds-client-creds
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: Connect
+metadata:
+  name: kafka-connect
+  namespace: confluent
+  labels:
+    app: kafka-connect
+    component: data-integration
+spec:
+  pdb:
+    enabled: false
+  replicas: 1
+  image:
+    application: confluentinc/cp-server-connect:7.6.0
+    init: confluentinc/confluent-init-container:2.8.0
+  podTemplate:
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: "1"
+        memory: 1024Mi
+    probe:
+      liveness:
+        initialDelaySeconds: 180
+        failureThreshold: 10
+      readiness:
+        initialDelaySeconds: 180
+        failureThreshold: 10
+  configOverrides:
+    server:
+      - config.storage.replication.factor=1
+      - offset.storage.replication.factor=1
+      - status.storage.replication.factor=1
+      - connector.client.config.override.policy=All
+      - producer.max.request.size=52428800
+      - producer.buffer.memory=67108864
+      - producer.compression.type=gzip
+    jvm:
+      - "-Xmx512m"
+      - "-XX:+UseContainerSupport"
+  authorization:
+    type: rbac
+  dependencies:
+    kafka:
+      bootstrapEndpoint: kafka.confluent.svc.cluster.local:9092
+    schemaRegistry:
+      url: http://schemaregistry.confluent.svc.cluster.local:8081
+    mds:
+      endpoint: http://kafka.confluent.svc.cluster.local:8090
+      tokenKeyPair:
+        secretRef: mds-token-pem
+      authentication:
+        type: bearer
+        bearer:
+          secretRef: mds-client-creds
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: ControlCenter
+metadata:
+  name: controlcenter
+  namespace: confluent
+  labels:
+    app: controlcenter
+    component: management-ui
+spec:
+  replicas: 1
+  image:
+    application: confluentinc/cp-enterprise-control-center:7.6.0
+    init: confluentinc/confluent-init-container:2.8.0
+  dataVolumeCapacity: 10Gi
+  storageClass:
+    name: standard
+  authorization:
+    type: rbac
+  dependencies:
+    kafka:
+      bootstrapEndpoint: kafka.confluent.svc.cluster.local:9073
+    schemaRegistry:
+      url: http://schemaregistry.confluent.svc.cluster.local:8081
+    mds:
+      endpoint: http://kafka.confluent.svc.cluster.local:8090
+      tokenKeyPair:
+        secretRef: mds-token-pem
+      authentication:
+        type: bearer
+        bearer:
+          secretRef: mds-client-creds
+  podTemplate:
+    resources:
+      requests:
+        cpu: 200m
+        memory: 256Mi
+      limits:
+        cpu: "1"
+        memory: 768Mi
+    probe:
+      liveness:
+        initialDelaySeconds: 60
+        failureThreshold: 10
+      readiness:
+        initialDelaySeconds: 30
+        failureThreshold: 10
+  configOverrides:
+    server:
+      - confluent.controlcenter.internal.topics.replication=1
+      - confluent.controlcenter.command.topic.replication=1
+      - confluent.metrics.topic.replication=1
+      - confluent.monitoring.interceptor.topic.replication=1
+      - confluent.controlcenter.internal.topics.partitions=1
+      - confluent.metrics.topic.max.message.bytes=8388608
+    jvm:
+      - "-Xmx256m"
+      - "-XX:+UseContainerSupport"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: controlcenter-public
+  namespace: confluent
+  labels:
+    app: controlcenter
+    component: management-ui-public
+spec:
+  type: NodePort
+  selector:
+    app: controlcenter
+    platform.confluent.io/type: controlcenter
+  ports:
+    - name: http-controlcenter
+      protocol: TCP
+      port: 9021
+      targetPort: 9021
+      nodePort: 30021

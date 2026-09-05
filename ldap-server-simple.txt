@@ -1,0 +1,3 @@
+user=cn=admin,dc=example,dc=com
+username=cn=admin,dc=example,dc=com
+password=adminpassword

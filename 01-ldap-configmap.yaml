@@ -1,0 +1,43 @@
+apiVersion: v1
+data:
+  ldap-init.ldif: |
+    dn: ou=users,dc=example,dc=com
+    objectClass: organizationalUnit
+    ou: users
+
+    dn: ou=groups,dc=example,dc=com
+    objectClass: organizationalUnit
+    ou: groups
+
+    dn: cn=admin,ou=users,dc=example,dc=com
+    objectClass: inetOrgPerson
+    cn: admin
+    sn: Admin
+    userPassword: adminpassword
+
+    dn: cn=dev_user,ou=users,dc=example,dc=com
+    objectClass: inetOrgPerson
+    cn: dev_user
+    sn: Developer
+    userPassword: devpassword
+
+    dn: cn=view_user,ou=users,dc=example,dc=com
+    objectClass: inetOrgPerson
+    cn: view_user
+    sn: Viewer
+    userPassword: viewpassword
+
+    dn: cn=kafka_admins,ou=groups,dc=example,dc=com
+    objectClass: groupOfNames
+    cn: kafka_admins
+    member: cn=admin,ou=users,dc=example,dc=com
+
+    dn: cn=kafka_developers,ou=groups,dc=example,dc=com
+    objectClass: groupOfNames
+    cn: kafka_developers
+    member: cn=dev_user,ou=users,dc=example,dc=com
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: openldap-bootstrap-ldif
+  namespace: confluent

@@ -27,7 +27,7 @@ spec:
         - name: kafka-exporter
           image: danielqsj/kafka-exporter:latest
           args:
-            - "--kafka.server=kafka.confluent.svc.cluster.local:9092"
+            - "--kafka.server=kafka.confluent.svc.cluster.local:9071"
             - "--web.listen-address=:9308"
             - "--web.telemetry-path=/metrics"
           ports:
@@ -45,13 +45,15 @@ spec:
               path: /metrics
               port: 9308
             initialDelaySeconds: 15
-            periodSeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 10
           readinessProbe:
             httpGet:
               path: /metrics
               port: 9308
             initialDelaySeconds: 10
-            periodSeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 10
 ---
 apiVersion: v1
 kind: Service
@@ -70,69 +72,6 @@ spec:
       port: 9308
       targetPort: 9308
       nodePort: 30938
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: k8s-port-forwarder
-  namespace: confluent
-  labels:
-    app: k8s-port-forwarder
-    component: in-cluster-router
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: k8s-port-forwarder
-  template:
-    metadata:
-      labels:
-        app: k8s-port-forwarder
-        component: in-cluster-router
-    spec:
-      hostNetwork: true
-      serviceAccountName: default
-      containers:
-        - name: port-forwarder
-          image: bitnami/kubectl:latest
-          command:
-            - /bin/bash
-            - -c
-            - |
-              echo "Starting Kubernetes in-cluster permanent port-forwarder..."
-              
-              run_pf() {
-                local svc="$1"
-                local ports="$2"
-                while true; do
-                  echo "Launching port-forward for ${svc} (${ports})..."
-                  kubectl port-forward --address 0.0.0.0 -n confluent "service/${svc}" ${ports} || true
-                  sleep 3
-                done
-              }
-              
-              run_pf "controlcenter-public" "30021:9021" &
-              run_pf "kafka" "9092:9092" &
-              run_pf "kafka-exporter" "9308:9308" &
-              
-              wait
-          resources: {}
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: port-forwarder-admin-binding
-  namespace: confluent
-  labels:
-    app: k8s-port-forwarder
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: admin
-subjects:
-  - kind: ServiceAccount
-    name: default
-    namespace: confluent
 ---
 apiVersion: apps/v1
 kind: Deployment

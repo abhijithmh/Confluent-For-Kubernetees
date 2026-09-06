@@ -20,6 +20,13 @@ spec:
   dataVolumeCapacity: 10Gi
   storageClass:
     name: standard
+  listeners:
+    external:
+      externalAccess:
+        type: nodePort
+        nodePort:
+          host: 32.196.166.41
+          nodePortOffset: 30022
   metricReporter:
     enabled: true
   podTemplate:
@@ -72,6 +79,7 @@ spec:
       - "-Xmx384m"
       - "-XX:+UseContainerSupport"
     server:
+      - "advertised.listeners=EXTERNAL://32.196.166.41:30023,INTERNAL://kafka-0.kafka.confluent.svc.cluster.local:9071,REPLICATION://kafka-0.kafka.confluent.svc.cluster.local:9072,TOKEN://kafka-0.kafka.confluent.svc.cluster.local:9073"
       - "offsets.topic.replication.factor=1"
       - "transaction.state.log.replication.factor=1"
       - "transaction.state.log.min.isr=1"

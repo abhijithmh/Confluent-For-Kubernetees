@@ -79,4 +79,23 @@ spec:
     name: default
   clustersScopeByIds:
     connectClusterId: confluent.kafka-connect
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: ConfluentRolebinding
+metadata:
+  name: admin-schemaregistry-system-admin
+  namespace: confluent
+  labels:
+    app: rbac
+    role: schemaregistry-system-admin
+spec:
+  principal:
+    type: user
+    name: admin
+  role: SystemAdmin
+  kafkaRestClassRef:
+    name: default
+  clustersScopeByIds:
+    schemaRegistryClusterId: id_schemaregistry_confluent
+
 

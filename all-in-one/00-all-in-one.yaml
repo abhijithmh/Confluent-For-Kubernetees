@@ -1,7 +1,30 @@
 # ==============================================================================
 # CONFLUENT PLATFORM ON KUBERNETES (CFK)
-# Part 1: Core Infrastructure (OpenLDAP & KRaft Controller)
+# Part 1: Core Infrastructure (StorageClasses, OpenLDAP & KRaft Controller)
 # ==============================================================================
+
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: gp2
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+provisioner: ebs.csi.eks.amazonaws.com
+volumeBindingMode: WaitForFirstConsumer
+parameters:
+  type: gp2
+  fsType: ext4
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: standard
+provisioner: ebs.csi.eks.amazonaws.com
+volumeBindingMode: WaitForFirstConsumer
+parameters:
+  type: gp2
+  fsType: ext4
 
 ---
 apiVersion: apps/v1
@@ -117,7 +140,7 @@ spec:
       externalAccess:
         type: nodePort
         nodePort:
-          host: 32.196.166.41
+          host: 18.209.49.81
           nodePortOffset: 30022
   metricReporter:
     enabled: true
@@ -171,7 +194,7 @@ spec:
       - "-Xmx384m"
       - "-XX:+UseContainerSupport"
     server:
-      - "advertised.listeners=EXTERNAL://32.196.166.41:30023,INTERNAL://kafka-0.kafka.confluent.svc.cluster.local:9071,REPLICATION://kafka-0.kafka.confluent.svc.cluster.local:9072,TOKEN://kafka-0.kafka.confluent.svc.cluster.local:9073"
+      - "advertised.listeners=EXTERNAL://18.209.49.81:30023,INTERNAL://kafka-0.kafka.confluent.svc.cluster.local:9071,REPLICATION://kafka-0.kafka.confluent.svc.cluster.local:9072,TOKEN://kafka-0.kafka.confluent.svc.cluster.local:9073"
       - "offsets.topic.replication.factor=1"
       - "transaction.state.log.replication.factor=1"
       - "transaction.state.log.min.isr=1"

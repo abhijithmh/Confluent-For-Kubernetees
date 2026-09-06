@@ -24,6 +24,12 @@ cn: view_user
 sn: Viewer
 userPassword: viewpassword
 
+dn: cn=parvathi,ou=users,dc=example,dc=com
+objectClass: inetOrgPerson
+cn: parvathi
+sn: Viewer
+userPassword: parvathipassword
+
 dn: cn=kafka_admins,ou=groups,dc=example,dc=com
 objectClass: groupOfNames
 cn: kafka_admins

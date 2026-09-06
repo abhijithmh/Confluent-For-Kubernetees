@@ -1,0 +1,32 @@
+# ==============================================================================
+# CONFLUENT PLATFORM ON KUBERNETES (CFK)
+# Part 6: Kubernetes Declarative Connector (Datagen Users Source)
+# ==============================================================================
+
+apiVersion: platform.confluent.io/v1beta1
+kind: Connector
+metadata:
+  name: datagen-users-source
+  namespace: confluent
+  labels:
+    app: datagen-users-source
+    component: connector
+spec:
+  class: "io.confluent.kafka.connect.datagen.DatagenConnector"
+  taskMax: 1
+  connectClusterRef:
+    name: kafka-connect
+  connectRest:
+    authentication:
+      type: bearer
+      bearer:
+        secretRef: mds-client-creds
+  configs:
+    kafka.topic: "Product"
+    quickstart: "users"
+    key.converter: "org.apache.kafka.connect.storage.StringConverter"
+    value.converter: "org.apache.kafka.connect.json.JsonConverter"
+    value.converter.schemas.enable: "false"
+    max.interval: "1000"
+    principal.service.name: "admin"
+    principal.service.password: "adminpassword"

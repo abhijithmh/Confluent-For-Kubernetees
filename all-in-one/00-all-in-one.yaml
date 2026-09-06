@@ -1,13 +1,8 @@
 # ==============================================================================
-# CONFLUENT PLATFORM ON KUBERNETES (CFK) - ALL-IN-ONE DEPLOYMENT MANIFEST
-# Consolidated Production-Ready Deployment
-# Components: OpenLDAP, KRaft, Kafka, Schema Registry, Connect, Control Center,
-# Exporter, In-Cluster Router, Cloudflare Quick Tunnels, RBAC RoleBindings
+# CONFLUENT PLATFORM ON KUBERNETES (CFK)
+# Part 1: Core Infrastructure (OpenLDAP & KRaft Controller)
 # ==============================================================================
 
-# ------------------------------------------------------------------------------
-# 1. CORE INFRASTRUCTURE (OpenLDAP & KRaft Controller)
-# ------------------------------------------------------------------------------
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -95,10 +90,11 @@ spec:
     jvm:
       - "-Xmx256m"
       - "-XX:+UseContainerSupport"
+# ==============================================================================
+# CONFLUENT PLATFORM ON KUBERNETES (CFK)
+# Part 2: Kafka Broker Cluster & Kafka REST Class
+# ==============================================================================
 
-# ------------------------------------------------------------------------------
-# 2. KAFKA BROKER CLUSTER & REST CLASS
-# ------------------------------------------------------------------------------
 ---
 apiVersion: platform.confluent.io/v1beta1
 kind: Kafka
@@ -116,6 +112,8 @@ spec:
   dataVolumeCapacity: 10Gi
   storageClass:
     name: standard
+  metricReporter:
+    enabled: true
   podTemplate:
     resources:
       requests:
@@ -192,10 +190,11 @@ spec:
       type: bearer
       bearer:
         secretRef: mds-client-creds
+# ==============================================================================
+# CONFLUENT PLATFORM ON KUBERNETES (CFK)
+# Part 3: Ecosystem Services (Schema Registry, Kafka Connect, Control Center)
+# ==============================================================================
 
-# ------------------------------------------------------------------------------
-# 3. ECOSYSTEM SERVICES (Schema Registry, Kafka Connect, Control Center)
-# ------------------------------------------------------------------------------
 ---
 apiVersion: platform.confluent.io/v1beta1
 kind: SchemaRegistry
@@ -250,6 +249,15 @@ spec:
   pdb:
     enabled: false
   replicas: 1
+  build:
+    type: onDemand
+    onDemand:
+      plugins:
+        locationType: confluentHub
+        confluentHub:
+          - name: kafka-connect-datagen
+            owner: confluentinc
+            version: 0.6.4
   image:
     application: confluentinc/cp-server-connect:7.6.0
     init: confluentinc/confluent-init-container:2.8.0
@@ -266,7 +274,7 @@ spec:
         initialDelaySeconds: 180
         failureThreshold: 10
       readiness:
-        initialDelaySeconds: 180
+        initialDelaySeconds: 15
         failureThreshold: 10
   configOverrides:
     server:
@@ -284,7 +292,7 @@ spec:
     type: rbac
   dependencies:
     kafka:
-      bootstrapEndpoint: kafka.confluent.svc.cluster.local:9092
+      bootstrapEndpoint: kafka.confluent.svc.cluster.local:9073
     schemaRegistry:
       url: http://schemaregistry.confluent.svc.cluster.local:8081
     mds:
@@ -319,6 +327,9 @@ spec:
       bootstrapEndpoint: kafka.confluent.svc.cluster.local:9073
     schemaRegistry:
       url: http://schemaregistry.confluent.svc.cluster.local:8081
+    connect:
+      - name: kafka-connect
+        url: http://kafka-connect.confluent.svc.cluster.local:8083
     mds:
       endpoint: http://kafka.confluent.svc.cluster.local:8090
       tokenKeyPair:
@@ -373,10 +384,11 @@ spec:
       port: 9021
       targetPort: 9021
       nodePort: 30021
+# ==============================================================================
+# CONFLUENT PLATFORM ON KUBERNETES (CFK)
+# Part 4: Monitoring & External Access (Kafka Exporter, Port Forwarder, Cloudflare)
+# ==============================================================================
 
-# ------------------------------------------------------------------------------
-# 4. MONITORING & EXTERNAL ACCESS
-# ------------------------------------------------------------------------------
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -580,10 +592,11 @@ spec:
             limits:
               cpu: 200m
               memory: 128Mi
+# ==============================================================================
+# CONFLUENT PLATFORM ON KUBERNETES (CFK)
+# Part 5: Role-Based Access Control (RBAC RoleBindings)
+# ==============================================================================
 
-# ------------------------------------------------------------------------------
-# 5. ROLE-BASED ACCESS CONTROL (ConfluentRoleBindings)
-# ------------------------------------------------------------------------------
 ---
 apiVersion: platform.confluent.io/v1beta1
 kind: ConfluentRolebinding
@@ -600,8 +613,6 @@ spec:
   role: SystemAdmin
   kafkaRestClassRef:
     name: default
-  clustersScopeByIds:
-    kafkaClusterId: confluent
 ---
 apiVersion: platform.confluent.io/v1beta1
 kind: ConfluentRolebinding
@@ -622,6 +633,76 @@ spec:
       patternType: LITERAL
   kafkaRestClassRef:
     name: default
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: ConfluentRolebinding
+metadata:
+  name: admin-connect-all-connectors
+  namespace: confluent
+  labels:
+    app: rbac
+    role: connect-all-connectors
+spec:
+  principal:
+    type: user
+    name: admin
+  role: ResourceOwner
+  resourcePatterns:
+    - resourceType: Connector
+      name: datagen-users-source
+      patternType: LITERAL
+  kafkaRestClassRef:
+    name: default
   clustersScopeByIds:
-    kafkaClusterId: confluent
+    connectClusterId: confluent.kafka-connect
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: ConfluentRolebinding
+metadata:
+  name: admin-connect-system-admin
+  namespace: confluent
+  labels:
+    app: rbac
+    role: connect-system-admin
+spec:
+  principal:
+    type: user
+    name: admin
+  role: SystemAdmin
+  kafkaRestClassRef:
+    name: default
+  clustersScopeByIds:
+    connectClusterId: confluent.kafka-connect
 
+# ==============================================================================
+# CONFLUENT PLATFORM ON KUBERNETES (CFK)
+# Part 6: Kubernetes Declarative Connector (Datagen Users Source)
+# ==============================================================================
+
+apiVersion: platform.confluent.io/v1beta1
+kind: Connector
+metadata:
+  name: datagen-users-source
+  namespace: confluent
+  labels:
+    app: datagen-users-source
+    component: connector
+spec:
+  class: "io.confluent.kafka.connect.datagen.DatagenConnector"
+  taskMax: 1
+  connectClusterRef:
+    name: kafka-connect
+  connectRest:
+    authentication:
+      type: bearer
+      bearer:
+        secretRef: mds-client-creds
+  configs:
+    kafka.topic: "Product"
+    quickstart: "users"
+    key.converter: "org.apache.kafka.connect.storage.StringConverter"
+    value.converter: "org.apache.kafka.connect.json.JsonConverter"
+    value.converter.schemas.enable: "false"
+    max.interval: "1000"
+    principal.service.name: "admin"
+    principal.service.password: "adminpassword"

@@ -19,8 +19,6 @@ spec:
   role: SystemAdmin
   kafkaRestClassRef:
     name: default
-  clustersScopeByIds:
-    kafkaClusterId: confluent
 ---
 apiVersion: platform.confluent.io/v1beta1
 kind: ConfluentRolebinding
@@ -41,5 +39,44 @@ spec:
       patternType: LITERAL
   kafkaRestClassRef:
     name: default
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: ConfluentRolebinding
+metadata:
+  name: admin-connect-all-connectors
+  namespace: confluent
+  labels:
+    app: rbac
+    role: connect-all-connectors
+spec:
+  principal:
+    type: user
+    name: admin
+  role: ResourceOwner
+  resourcePatterns:
+    - resourceType: Connector
+      name: datagen-users-source
+      patternType: LITERAL
+  kafkaRestClassRef:
+    name: default
   clustersScopeByIds:
-    kafkaClusterId: confluent
+    connectClusterId: confluent.kafka-connect
+---
+apiVersion: platform.confluent.io/v1beta1
+kind: ConfluentRolebinding
+metadata:
+  name: admin-connect-system-admin
+  namespace: confluent
+  labels:
+    app: rbac
+    role: connect-system-admin
+spec:
+  principal:
+    type: user
+    name: admin
+  role: SystemAdmin
+  kafkaRestClassRef:
+    name: default
+  clustersScopeByIds:
+    connectClusterId: confluent.kafka-connect
+

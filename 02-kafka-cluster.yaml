@@ -20,6 +20,8 @@ spec:
   dataVolumeCapacity: 10Gi
   storageClass:
     name: standard
+  metricReporter:
+    enabled: true
   podTemplate:
     resources:
       requests:

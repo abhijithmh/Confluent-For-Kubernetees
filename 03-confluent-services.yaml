@@ -57,6 +57,15 @@ spec:
   pdb:
     enabled: false
   replicas: 1
+  build:
+    type: onDemand
+    onDemand:
+      plugins:
+        locationType: confluentHub
+        confluentHub:
+          - name: kafka-connect-datagen
+            owner: confluentinc
+            version: 0.6.4
   image:
     application: confluentinc/cp-server-connect:7.6.0
     init: confluentinc/confluent-init-container:2.8.0
@@ -73,7 +82,7 @@ spec:
         initialDelaySeconds: 180
         failureThreshold: 10
       readiness:
-        initialDelaySeconds: 180
+        initialDelaySeconds: 15
         failureThreshold: 10
   configOverrides:
     server:
@@ -91,7 +100,7 @@ spec:
     type: rbac
   dependencies:
     kafka:
-      bootstrapEndpoint: kafka.confluent.svc.cluster.local:9092
+      bootstrapEndpoint: kafka.confluent.svc.cluster.local:9073
     schemaRegistry:
       url: http://schemaregistry.confluent.svc.cluster.local:8081
     mds:
@@ -126,6 +135,9 @@ spec:
       bootstrapEndpoint: kafka.confluent.svc.cluster.local:9073
     schemaRegistry:
       url: http://schemaregistry.confluent.svc.cluster.local:8081
+    connect:
+      - name: kafka-connect
+        url: http://kafka-connect.confluent.svc.cluster.local:8083
     mds:
       endpoint: http://kafka.confluent.svc.cluster.local:8090
       tokenKeyPair:

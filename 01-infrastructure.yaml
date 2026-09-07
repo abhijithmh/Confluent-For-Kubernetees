@@ -100,7 +100,7 @@ spec:
     init: confluentinc/confluent-init-container:2.8.0
   dataVolumeCapacity: 10Gi
   storageClass:
-    name: gp2
+    name: standard
   podTemplate:
     resources:
       requests:
@@ -108,9 +108,9 @@ spec:
         memory: 256Mi
       limits:
         cpu: "1"
-        memory: 512Mi
+        memory: 1Gi
   configOverrides:
     jvm:
-      - "-Xmx256m"
+      - "-Xmx512m"
       - "-XX:+UseContainerSupport"
 

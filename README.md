@@ -14,24 +14,32 @@ This directory contains the production-ready Kubernetes manifests, LDAP schemas,
 
 | File | Description |
 | :--- | :--- |
-| [`kafka-cluster.yaml`](file:///home/ubuntu/Dev/CFK/kafka-cluster.yaml) | Confluent Kafka CRD with KRaft controller ref, embedded MDS, LDAP provider config, and JVM tuning |
-| [`controlcenter.yaml`](file:///home/ubuntu/Dev/CFK/controlcenter.yaml) | Confluent Control Center UI CRD with MDS RBAC authentication & NodePort `30021` |
-| [`kafka-rest-class.yaml`](file:///home/ubuntu/Dev/CFK/kafka-rest-class.yaml) | `KafkaRestClass` resource mapping Kafka cluster ID to MDS REST endpoint (`:8090`) |
-| [`rbac-rolebindings.yaml`](file:///home/ubuntu/Dev/CFK/rbac-rolebindings.yaml) | `ConfluentRolebinding` resources (`SystemAdmin` & `DeveloperRead`) |
-| [`openldap.yaml`](file:///home/ubuntu/Dev/CFK/openldap.yaml) | Lightweight OpenLDAP deployment and service (`:389`) |
-| [`ldap-init.ldif`](file:///home/ubuntu/Dev/CFK/ldap-init.ldif) | LDIF data structure initializing `ou=users`, `ou=groups`, users (`admin`, `dev_user`, `view_user`), and groups |
-| [`ldap-server-simple.txt`](file:///home/ubuntu/Dev/CFK/ldap-server-simple.txt) | Property file containing LDAP administrative bind credentials |
-| [`mds-client-bearer.txt`](file:///home/ubuntu/Dev/CFK/mds-client-bearer.txt) | Property file containing MDS service client bearer credentials |
-| [`cloudflare-tunnel-free.yaml`](file:///home/ubuntu/Dev/CFK/cloudflare-tunnel-free.yaml) | Cloudflare Quick Tunnel deployment exposing C3 UI (HTTP) & Kafka Broker (TCP) |
-| [`kafka_client.py`](file:///home/ubuntu/Dev/CFK/kafka_client.py) | External Python Kafka client for producing/consuming via Cloudflare TCP tunnel |
-| [`kraftcontroller.yaml`](file:///home/ubuntu/Dev/CFK/kraftcontroller.yaml) | KRaft Controller quorum deployment manifest |
-| [`schemaregistry.yaml`](file:///home/ubuntu/Dev/CFK/schemaregistry.yaml) | Confluent Schema Registry CRD manifest |
+| [`00-secrets.yaml`](file:///Users/abhijithmh/Confluent-For-Kubernetees/00-secrets.yaml) | Declarative Kubernetes Secrets for MDS RSA keypair, LDAP bind creds, inter-component bearer tokens, and SASL/PLAIN user maps |
+| [`01-infrastructure.yaml`](file:///Users/abhijithmh/Confluent-For-Kubernetees/01-infrastructure.yaml) | Core infrastructure: EBS StorageClasses (`gp2`, `standard`), OpenLDAP server, and KRaft Controller quorum |
+| [`01-ldap-configmap.yaml`](file:///Users/abhijithmh/Confluent-For-Kubernetees/01-ldap-configmap.yaml) | ConfigMap containing LDIF dataset (`ou=users`, `ou=groups`, users `admin`, `dev_user`, `parvathi`) |
+| [`02-kafka-cluster.yaml`](file:///Users/abhijithmh/Confluent-For-Kubernetees/02-kafka-cluster.yaml) | Confluent Kafka CRD with KRaft quorum ref, MDS RBAC enabled, LDAP provider, SASL/PLAIN external listener, and JVM tuning |
+| [`03-confluent-services.yaml`](file:///Users/abhijithmh/Confluent-For-Kubernetees/03-confluent-services.yaml) | Confluent Schema Registry, Kafka Connect, and Control Center UI CRDs with MDS RBAC authentication |
+| [`04-monitoring-and-access.yaml`](file:///Users/abhijithmh/Confluent-For-Kubernetees/04-monitoring-and-access.yaml) | Prometheus Kafka Exporter deployment and Cloudflare Quick Tunnel service |
+| [`05-rbac-rolebindings.yaml`](file:///Users/abhijithmh/Confluent-For-Kubernetees/05-rbac-rolebindings.yaml) | `ConfluentRolebinding` CRDs for `SystemAdmin` and `DeveloperRead` roles |
+| [`06-datagen-connector.yaml`](file:///Users/abhijithmh/Confluent-For-Kubernetees/06-datagen-connector.yaml) | `Connector` CRD generating mock orders stream into Kafka topic |
+| [`all-in-one/00-all-in-one.yaml`](file:///Users/abhijithmh/Confluent-For-Kubernetees/all-in-one/00-all-in-one.yaml) | Single consolidated manifest containing all secrets, infrastructure, services, monitoring, and connectors |
 
 ---
 
-## 🚀 One-Command Deployment
+## 🚀 Deployment Instructions
 
-Apply all cluster resources:
+Apply all cluster resources declaratively:
 ```bash
-kubectl apply -f /home/ubuntu/Dev/CFK/
+# Option 1: Apply individual ordered manifests
+kubectl apply -f 00-secrets.yaml
+kubectl apply -f 01-ldap-configmap.yaml
+kubectl apply -f 01-infrastructure.yaml
+kubectl apply -f 02-kafka-cluster.yaml
+kubectl apply -f 03-confluent-services.yaml
+kubectl apply -f 04-monitoring-and-access.yaml
+kubectl apply -f 05-rbac-rolebindings.yaml
+kubectl apply -f 06-datagen-connector.yaml
+
+# Option 2: Apply single consolidated manifest
+kubectl apply -f all-in-one/00-all-in-one.yaml
 ```

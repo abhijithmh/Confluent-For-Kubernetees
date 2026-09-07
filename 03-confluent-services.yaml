@@ -13,7 +13,7 @@ metadata:
     app: schemaregistry
     component: schema-management
 spec:
-  replicas: 1
+  replicas: 2
   image:
     application: confluentinc/cp-schema-registry:7.6.0
     init: confluentinc/confluent-init-container:2.8.0
@@ -24,10 +24,10 @@ spec:
         memory: 256Mi
       limits:
         cpu: "1"
-        memory: 512Mi
+        memory: 768Mi
   configOverrides:
     jvm:
-      - "-Xmx256m"
+      - "-Xmx384m"
       - "-XX:+UseContainerSupport"
   authorization:
     type: rbac
@@ -56,7 +56,7 @@ metadata:
 spec:
   pdb:
     enabled: false
-  replicas: 1
+  replicas: 2
   build:
     type: onDemand
     onDemand:
@@ -86,9 +86,9 @@ spec:
         failureThreshold: 10
   configOverrides:
     server:
-      - config.storage.replication.factor=1
-      - offset.storage.replication.factor=1
-      - status.storage.replication.factor=1
+      - config.storage.replication.factor=3
+      - offset.storage.replication.factor=3
+      - status.storage.replication.factor=3
       - connector.client.config.override.policy=All
       - producer.max.request.size=52428800
       - producer.buffer.memory=67108864
@@ -150,10 +150,10 @@ spec:
     resources:
       requests:
         cpu: 200m
-        memory: 256Mi
+        memory: 512Mi
       limits:
         cpu: "1"
-        memory: 768Mi
+        memory: 1.5Gi
     probe:
       liveness:
         initialDelaySeconds: 60
@@ -163,14 +163,14 @@ spec:
         failureThreshold: 10
   configOverrides:
     server:
-      - confluent.controlcenter.internal.topics.replication=1
-      - confluent.controlcenter.command.topic.replication=1
-      - confluent.metrics.topic.replication=1
-      - confluent.monitoring.interceptor.topic.replication=1
+      - confluent.controlcenter.internal.topics.replication=3
+      - confluent.controlcenter.command.topic.replication=3
+      - confluent.metrics.topic.replication=3
+      - confluent.monitoring.interceptor.topic.replication=3
       - confluent.controlcenter.internal.topics.partitions=1
       - confluent.metrics.topic.max.message.bytes=8388608
     jvm:
-      - "-Xmx256m"
+      - "-Xmx768m"
       - "-XX:+UseContainerSupport"
 ---
 apiVersion: v1

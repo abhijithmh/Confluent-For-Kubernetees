@@ -112,56 +112,44 @@ kubectl exec -i deployment/openldap -n confluent -- \
 
 ### Step 3: RSA Token Keypair & Secrets Provisioning
 
-Confluent MDS and ecosystem components require 3 Kubernetes secrets in namespace `confluent`:
-
-#### 3.1 Generate RSA 2048-Bit Key Pair (`mds-token-pem`)
-MDS uses an asymmetric RSA key pair to sign and verify JWT tokens.
-
 ```bash
 # Generate private and public RSA keys
 openssl genrsa -out mdsTokenKeyPair.pem 2048
 openssl rsa -in mdsTokenKeyPair.pem -pubout -out mdsPublicKey.pem
+```
 
-# Create Kubernetes Secret
+All required Kubernetes secrets (`mds-token-pem`, `ldap-bind-creds`, `mds-client-creds`) are managed **declaratively** via [`00-secrets.yaml`](file:///Users/abhijithmh/Confluent-For-Kubernetees/00-secrets.yaml).
+
+#### 3.1 Declarative Secret Application (Recommended)
+```bash
+kubectl apply -f 00-secrets.yaml
+```
+
+The manifest includes:
+1. **`mds-token-pem`**: 2048-bit RSA Private Key (`mdsTokenKeyPair.pem`) and Public Key (`mdsPublicKey.pem`) for JWT token signing.
+2. **`ldap-bind-creds`**: Administrative bind properties (`ldap-server-simple.txt`, `ldap.txt`) for MDS user/group lookups.
+3. **`mds-client-creds`**: Multi-filename aliased bearer tokens (`bearer.txt`, `mds-client-bearer.txt`, `connect-client-bearer.txt`, `schemaregistry-client-bearer.txt`, `c3-client-bearer.txt`) and SASL/PLAIN user maps (`plain-users.json`, `kafka-server-plain-users.json`, `kafka-server-listener-external-plain-users.json`).
+
+#### 3.2 Imperative Equivalent (CLI Command Reference)
+```bash
+# RSA Keypair Secret
 kubectl create secret generic mds-token-pem -n confluent \
   --from-file=mdsTokenKeyPair.pem=mdsTokenKeyPair.pem \
   --from-file=mdsPublicKey.pem=mdsPublicKey.pem
-```
 
-#### 3.2 Create LDAP Bind Credentials Secret (`ldap-bind-creds`)
-Supplies credentials for MDS to perform simple LDAP binds during user lookup and group resolution.
-
-```bash
-# Create secret with standard file and alias key
+# LDAP Bind Credentials Secret
 kubectl create secret generic ldap-bind-creds -n confluent \
   --from-file=ldap-server-simple.txt=ldap-server-simple.txt \
   --from-file=ldap.txt=ldap-server-simple.txt
-```
 
-*File Content (`ldap-server-simple.txt`)*:
-```properties
-user=cn=admin,dc=example,dc=com
-username=cn=admin,dc=example,dc=com
-password=adminpassword
-```
-
-#### 3.3 Create MDS Client Credentials Secret (`mds-client-creds`)
-Provides credentials for internal components (Control Center, Schema Registry, Connect, CFK Operator) to authenticate with MDS.
-
-```bash
-# Create secret with multi-alias filenames expected by CFK components
+# MDS Client Credentials & SASL User Map Secret
 kubectl create secret generic mds-client-creds -n confluent \
   --from-file=mds-client-bearer.txt=mds-client-bearer.txt \
   --from-file=bearer.txt=mds-client-bearer.txt \
   --from-file=connect-client-bearer.txt=mds-client-bearer.txt \
   --from-file=schemaregistry-client-bearer.txt=mds-client-bearer.txt \
-  --from-file=c3-client-bearer.txt=mds-client-bearer.txt
-```
-
-*File Content (`mds-client-bearer.txt`)*:
-```properties
-username=admin
-password=adminpassword
+  --from-file=c3-client-bearer.txt=mds-client-bearer.txt \
+  --from-file=plain-users.json=plain-users.json
 ```
 
 ---

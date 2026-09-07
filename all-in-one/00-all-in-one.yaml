@@ -1,5 +1,115 @@
 # ==============================================================================
 # CONFLUENT PLATFORM ON KUBERNETES (CFK)
+# Part 0: Kubernetes Secrets Manifests
+# (MDS Token RSA Keys, LDAP Bind Credentials, MDS Client Credentials & SASL Users)
+# ==============================================================================
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mds-token-pem
+  namespace: confluent
+type: Opaque
+stringData:
+  mdsTokenKeyPair.pem: |
+    -----BEGIN PRIVATE KEY-----
+    MIIEugIBADANBgkqhkiG9w0BAQEFAASCBKQwggSgAgEAAoIBAQCRXZt5Gzdbl/Tq
+    x6sE2QYRnN0ck3bGUzhNtucVA0Aq14wlTaqP3am5FqBqaSeD7uYvZYSQMWvXAyur
+    rThjDFLd1AaFWjK1YbRST7q4ZyhH0KUDCkPKWs55oZVoLOLTxjdrX6k0sqgHsvbe
+    vjfJj7fgRj/K/jVka4RIHVSi43b/c/qrIonY13qrGmvEfG333y+UrnAV32N6Zy5o
+    9UUrBr4IuewGEvITjl9Tol5mYsA/lsASxu3EnMgkppwmp87wycK+5Uj657H6NWDf
+    bHKUaHYxSoKnrgkfXo16KRiLXaCVmuzyMEmO9hff0jUzRcq5Xbb4WUi5xXchu+We
+    /1ITgKPlAgMBAAECgf9RDqFjJon3yQQI5s22Jk38BDxHcvMII9+Bdjvku6tMOGUt
+    Z+Fz12aMjtFkhL5EEzLHuxPwU56OhnYThMOsd3K9vzzjnygnfBPQ0iSMLvmHEhDx
+    YQfsDjaUHEXzkRPqgtzkQrNXb0fDA0glbGwvOLSPmpx31Mhw9oMMs04+hhgU2P/d
+    WBFSh3Kpu0V9k1cznpfWCf2z0AeyUbzeu/hQ3Y+FW4x21PIEW3O5uFLkJA8wQ1u8
+    1v3RhXWz9kO+CMxCtBWt5LRkg4K+4OTkOEHchNRKdQYmpP+LTsQu4KJtNDYko5bf
+    49+RYvPm6Py5o6IfcQAa+3w3eA6nsdFOX+JGjQECgYEAyOPNEla9HZQKScuh21Ew
+    5V/cLvGVwkBTqWVZXUh+MBF5ezQIXJwbDhDA2NVK27/gyX6NV9HHIcDFFjq8K/FK
+    403293Kw20oGDZda280rXjxgAJN1KPHxgMlQHvfcRlk7VP5kSi/Xq73in154w2O0
+    J+VxKng14oYhN/oOxQg9uOUCgYEAuT5sdBJLMidUZbiRWTcd2GiXYlWCJtCJ/4TH
+    rmhuxcNkLslJ9iFGig04aR9HgUYxnrQmWD4h0Qc3NqXkZCZ/mUM9bw7FlTbiaMQN
+    vEsArLJ/PUorKHgyqEet0Dt5COmzA/ocQOdlOPQA0h00ZlxA4COGqq0+Y4RJlBZ4
+    8+RfjwECgYBvSdOHf0nRIvv4GbkW2Imv6EUANJF0RVKTmzPAe7J8SpHz8MVZGJnc
+    Vueet7p6tnd+6H7A0dPxHOuR/wPTjB6igcR5HK5hLUbhLKIG9kg6MlQ0vXvALRhO
+    8jdSkJkU18YItc01U/+0gsMS6rEX/RoGqBLjJikjzo6EhiC8gm4/CQKBgG0XQQFe
+    IKCJnt9EwXw7xDzE45oKZ1p6ZzpuNLYWVF3swpv2+LKVSBhWzsjBnfeYofInf4lq
+    FbomuLJbIdSFA5H7kjtMBLnqF43BH6Gqvdv2Ro6OljoABz0o8Uh3LcE896q46Vij
+    rO3MbItQnaJGZAJbiZwL6Hjs1/P5BAQFku0BAoGAKzRPx7LDF9MXxeTeVJBkzLKN
+    EEh86mxAtdtBql9yPdDGphjOFQijVXlc48YWOWkDqLSGo3IWvLvFlcNbeb41C/R7
+    LB+DJSW/yrr9IIenaxVjWAQTozptqL3IrwBcqKaAYWxJevY0a+dKzDV0Z9h3iwYR
+    l+HhcB09/migvQPjkdM=
+    -----END PRIVATE KEY-----
+  mdsPublicKey.pem: |
+    -----BEGIN PUBLIC KEY-----
+    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAkV2beRs3W5f06serBNkG
+    EZzdHJN2xlM4TbbnFQNAKteMJU2qj92puRagamkng+7mL2WEkDFr1wMrq604YwxS
+    3dQGhVoytWG0Uk+6uGcoR9ClAwpDylrOeaGVaCzi08Y3a1+pNLKoB7L23r43yY+3
+    4EY/yv41ZGuESB1UouN2/3P6qyKJ2Nd6qxprxHxt998vlK5wFd9jemcuaPVFKwa+
+    CLnsBhLyE45fU6JeZmLAP5bAEsbtxJzIJKacJqfO8MnCvuVI+uex+jVg32xylGh2
+    MUqCp64JH16NeikYi12glZrs8jBJjvYX39I1M0XKuV22+FlIucV3Ibvlnv9SE4Cj
+    5QIDAQAB
+    -----END PUBLIC KEY-----
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ldap-bind-creds
+  namespace: confluent
+type: Opaque
+stringData:
+  ldap-server-simple.txt: |
+    user=cn=admin,dc=example,dc=com
+    username=cn=admin,dc=example,dc=com
+    password=adminpassword
+  ldap.txt: |
+    user=cn=admin,dc=example,dc=com
+    username=cn=admin,dc=example,dc=com
+    password=adminpassword
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mds-client-creds
+  namespace: confluent
+type: Opaque
+stringData:
+  mds-client-bearer.txt: |
+    username=admin
+    password=adminpassword
+  bearer.txt: |
+    username=admin
+    password=adminpassword
+  connect-client-bearer.txt: |
+    username=admin
+    password=adminpassword
+  schemaregistry-client-bearer.txt: |
+    username=admin
+    password=adminpassword
+  c3-client-bearer.txt: |
+    username=admin
+    password=adminpassword
+  plain-users.json: |
+    {
+      "admin": "adminpassword",
+      "dev_user": "devpassword",
+      "parvathi": "parvathipassword"
+    }
+  kafka-server-plain-users.json: |
+    {
+      "admin": "adminpassword",
+      "dev_user": "devpassword",
+      "parvathi": "parvathipassword"
+    }
+  kafka-server-listener-external-plain-users.json: |
+    {
+      "admin": "adminpassword",
+      "dev_user": "devpassword",
+      "parvathi": "parvathipassword"
+    }
+# ==============================================================================
+# CONFLUENT PLATFORM ON KUBERNETES (CFK)
 # Part 1: Core Infrastructure (StorageClasses, OpenLDAP & KRaft Controller)
 # ==============================================================================
 
@@ -108,11 +218,61 @@ spec:
         memory: 256Mi
       limits:
         cpu: "1"
-        memory: 512Mi
+        memory: 1Gi
   configOverrides:
     jvm:
-      - "-Xmx256m"
+      - "-Xmx512m"
       - "-XX:+UseContainerSupport"
+
+apiVersion: v1
+data:
+  ldap-init.ldif: |
+    dn: ou=users,dc=example,dc=com
+    objectClass: organizationalUnit
+    ou: users
+
+    dn: ou=groups,dc=example,dc=com
+    objectClass: organizationalUnit
+    ou: groups
+
+    dn: cn=admin,ou=users,dc=example,dc=com
+    objectClass: inetOrgPerson
+    cn: admin
+    sn: Admin
+    userPassword: adminpassword
+
+    dn: cn=dev_user,ou=users,dc=example,dc=com
+    objectClass: inetOrgPerson
+    cn: dev_user
+    sn: Developer
+    userPassword: devpassword
+
+    dn: cn=view_user,ou=users,dc=example,dc=com
+    objectClass: inetOrgPerson
+    cn: view_user
+    sn: Viewer
+    userPassword: viewpassword
+
+    dn: cn=parvathi,ou=users,dc=example,dc=com
+    objectClass: inetOrgPerson
+    cn: parvathi
+    sn: Viewer
+    userPassword: parvathipassword
+
+    dn: cn=kafka_admins,ou=groups,dc=example,dc=com
+    objectClass: groupOfNames
+    cn: kafka_admins
+    member: cn=admin,ou=users,dc=example,dc=com
+
+    dn: cn=kafka_developers,ou=groups,dc=example,dc=com
+    objectClass: groupOfNames
+    cn: kafka_developers
+    member: cn=dev_user,ou=users,dc=example,dc=com
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: openldap-bootstrap-ldif
+  namespace: confluent
 # ==============================================================================
 # CONFLUENT PLATFORM ON KUBERNETES (CFK)
 # Part 2: Kafka Broker Cluster & Kafka REST Class
@@ -128,7 +288,7 @@ metadata:
     app: kafka
     component: streaming-broker
 spec:
-  replicas: 1
+  replicas: 3
   image:
     application: confluentinc/cp-server:7.6.0
     init: confluentinc/confluent-init-container:2.8.0
@@ -137,6 +297,10 @@ spec:
     name: standard
   listeners:
     external:
+      authentication:
+        type: plain
+        jaasConfig:
+          secretRef: mds-client-creds
       externalAccess:
         type: nodePort
         nodePort:
@@ -148,10 +312,10 @@ spec:
     resources:
       requests:
         cpu: 200m
-        memory: 256Mi
+        memory: 512Mi
       limits:
         cpu: "1"
-        memory: 1Gi
+        memory: 1.5Gi
   dependencies:
     kRaftController:
       clusterRef:
@@ -191,19 +355,18 @@ spec:
             groupObjectClass: "groupOfNames"
   configOverrides:
     jvm:
-      - "-Xmx384m"
+      - "-Xmx768m"
       - "-XX:+UseContainerSupport"
     server:
-      - "advertised.listeners=EXTERNAL://18.209.49.81:30023,INTERNAL://kafka-0.kafka.confluent.svc.cluster.local:9071,REPLICATION://kafka-0.kafka.confluent.svc.cluster.local:9072,TOKEN://kafka-0.kafka.confluent.svc.cluster.local:9073"
-      - "offsets.topic.replication.factor=1"
-      - "transaction.state.log.replication.factor=1"
-      - "transaction.state.log.min.isr=1"
-      - "confluent.license.topic.replication.factor=1"
-      - "confluent.metadata.topic.replication.factor=1"
-      - "confluent.security.event.logger.exporter.kafka.topic.replicas=1"
-      - "confluent.balancer.topic.replication.factor=1"
-      - "confluent.link.metadata.topic.replication.factor=1"
-      - "confluent.cluster.link.metadata.topic.replication.factor=1"
+      - "offsets.topic.replication.factor=3"
+      - "transaction.state.log.replication.factor=3"
+      - "transaction.state.log.min.isr=2"
+      - "confluent.license.topic.replication.factor=3"
+      - "confluent.metadata.topic.replication.factor=3"
+      - "confluent.security.event.logger.exporter.kafka.topic.replicas=3"
+      - "confluent.balancer.topic.replication.factor=3"
+      - "confluent.link.metadata.topic.replication.factor=3"
+      - "confluent.cluster.link.metadata.topic.replication.factor=3"
 ---
 apiVersion: platform.confluent.io/v1beta1
 kind: KafkaRestClass
@@ -236,7 +399,7 @@ metadata:
     app: schemaregistry
     component: schema-management
 spec:
-  replicas: 1
+  replicas: 2
   image:
     application: confluentinc/cp-schema-registry:7.6.0
     init: confluentinc/confluent-init-container:2.8.0
@@ -247,10 +410,10 @@ spec:
         memory: 256Mi
       limits:
         cpu: "1"
-        memory: 512Mi
+        memory: 768Mi
   configOverrides:
     jvm:
-      - "-Xmx256m"
+      - "-Xmx384m"
       - "-XX:+UseContainerSupport"
   authorization:
     type: rbac
@@ -279,7 +442,7 @@ metadata:
 spec:
   pdb:
     enabled: false
-  replicas: 1
+  replicas: 2
   build:
     type: onDemand
     onDemand:
@@ -309,9 +472,9 @@ spec:
         failureThreshold: 10
   configOverrides:
     server:
-      - config.storage.replication.factor=1
-      - offset.storage.replication.factor=1
-      - status.storage.replication.factor=1
+      - config.storage.replication.factor=3
+      - offset.storage.replication.factor=3
+      - status.storage.replication.factor=3
       - connector.client.config.override.policy=All
       - producer.max.request.size=52428800
       - producer.buffer.memory=67108864
@@ -373,10 +536,10 @@ spec:
     resources:
       requests:
         cpu: 200m
-        memory: 256Mi
+        memory: 512Mi
       limits:
         cpu: "1"
-        memory: 768Mi
+        memory: 1.5Gi
     probe:
       liveness:
         initialDelaySeconds: 60
@@ -386,14 +549,14 @@ spec:
         failureThreshold: 10
   configOverrides:
     server:
-      - confluent.controlcenter.internal.topics.replication=1
-      - confluent.controlcenter.command.topic.replication=1
-      - confluent.metrics.topic.replication=1
-      - confluent.monitoring.interceptor.topic.replication=1
+      - confluent.controlcenter.internal.topics.replication=3
+      - confluent.controlcenter.command.topic.replication=3
+      - confluent.metrics.topic.replication=3
+      - confluent.monitoring.interceptor.topic.replication=3
       - confluent.controlcenter.internal.topics.partitions=1
       - confluent.metrics.topic.max.message.bytes=8388608
     jvm:
-      - "-Xmx256m"
+      - "-Xmx768m"
       - "-XX:+UseContainerSupport"
 ---
 apiVersion: v1

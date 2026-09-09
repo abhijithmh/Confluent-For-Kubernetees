@@ -68,6 +68,14 @@ spec:
             limits:
               cpu: 200m
               memory: 128Mi
+          volumeMounts:
+            - name: bootstrap-ldif
+              mountPath: /container/service/slapd/assets/config/bootstrap/ldif/custom/custom.ldif
+              subPath: ldap-init.ldif
+      volumes:
+        - name: bootstrap-ldif
+          configMap:
+            name: openldap-bootstrap-ldif
 ---
 apiVersion: v1
 kind: Service
@@ -113,4 +121,6 @@ spec:
     jvm:
       - "-Xmx512m"
       - "-XX:+UseContainerSupport"
+    server:
+      - "confluent.balancer.enable=false"
 

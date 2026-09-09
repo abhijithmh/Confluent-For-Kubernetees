@@ -29,7 +29,7 @@ spec:
       externalAccess:
         type: nodePort
         nodePort:
-          host: 18.209.49.81
+          host: 32.198.108.214
           nodePortOffset: 30022
   metricReporter:
     enabled: true
@@ -37,7 +37,7 @@ spec:
     resources:
       requests:
         cpu: 200m
-        memory: 512Mi
+        memory: 768Mi
       limits:
         cpu: "1"
         memory: 1.5Gi
@@ -83,6 +83,7 @@ spec:
       - "-Xmx768m"
       - "-XX:+UseContainerSupport"
     server:
+      - "confluent.balancer.enable=false"
       - "offsets.topic.replication.factor=3"
       - "transaction.state.log.replication.factor=3"
       - "transaction.state.log.min.isr=2"

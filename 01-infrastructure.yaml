@@ -49,6 +49,13 @@ spec:
       containers:
         - name: openldap
           image: osixia/openldap:1.5.0
+          command:
+            - /bin/sh
+            - -c
+            - |
+              mkdir -p /container/service/slapd/assets/config/bootstrap/ldif/custom
+              cp /bootstrap-ldif/ldap-init.ldif /container/service/slapd/assets/config/bootstrap/ldif/custom/custom.ldif
+              exec /container/tool/run
           env:
             - name: LDAP_ORGANISATION
               value: "Example Inc."
@@ -58,6 +65,8 @@ spec:
               value: "adminpassword"
             - name: LDAP_CONFIG_PASSWORD
               value: "configpassword"
+            - name: LDAP_TLS
+              value: "false"
           ports:
             - containerPort: 389
               name: ldap
@@ -70,8 +79,7 @@ spec:
               memory: 128Mi
           volumeMounts:
             - name: bootstrap-ldif
-              mountPath: /container/service/slapd/assets/config/bootstrap/ldif/custom/custom.ldif
-              subPath: ldap-init.ldif
+              mountPath: /bootstrap-ldif
       volumes:
         - name: bootstrap-ldif
           configMap:
@@ -102,6 +110,8 @@ metadata:
     app: kraftcontroller
     component: consensus
 spec:
+  pdb:
+    enabled: false
   replicas: 1
   image:
     application: confluentinc/cp-server:7.6.0

@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "kafka-k8s-consumer"
+version = "0.1.0"
+description = "Production-ready generic Kafka consumer for Kubernetes and Confluent Platform"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [
+    { name = "Platform Engineering" }
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
+dependencies = [
+    "kafka-python-ng>=2.2.2",
+    "lz4>=4.3.2",
+    "zstandard>=0.22.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0"
+]
+
+[project.scripts]
+kafka-consumer = "kafka_consumer.cli:main"
+kafka-producer = "kafka_producer.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

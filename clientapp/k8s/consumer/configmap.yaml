@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-consumer-config
+  namespace: kafka
+  labels:
+    app.kubernetes.io/name: kafka-consumer
+    app.kubernetes.io/part-of: confluent-client
+data:
+  # Bootstrap server: External NodePort / LoadBalancer (e.g. 30022) or In-cluster service
+  KAFKA_BOOTSTRAP_SERVERS: "32.198.108.214:30022"
+  KAFKA_TOPICS: "Product"
+  KAFKA_GROUP_ID: "my-python-consumer-group"
+  KAFKA_SECURITY_PROTOCOL: "SASL_PLAINTEXT"
+  KAFKA_SASL_MECHANISM: "PLAIN"
+  KAFKA_AUTO_OFFSET_RESET: "latest"
+  KAFKA_ENABLE_AUTO_COMMIT: "true"
+  HEALTH_PORT: "8080"
+  LOG_LEVEL: "INFO"
